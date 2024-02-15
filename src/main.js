@@ -12,37 +12,46 @@ let imageViewer;
 
 function searchImages(event) {
     event.preventDefault();
-    galleryList.innerHTML = '';
-    loader.classList.add('loader');
-    const searchInput = document.querySelector('.search-input');
-
-  fetchImages(searchInput.value)
-      .then(data => {
-        if (data.hits.length === 0) {
+  galleryList.innerHTML = '';
+  loader.style.display = 'block';
+  const searchInput = document.querySelector('.search-input');
+  const searchValue = searchInput.value.trim();
+     if (searchValue === '') {
             iziToast.error({
             title: '',
-            message: 'Sorry, there are no images matching your search query. Please try again!',
+            message: 'Please enter a search query!',
             position: 'topRight'
-});
+        });
+        loader.style.display = 'none';
+        return; 
     }
-        galleryList.innerHTML = createMarkup(data.hits);
-            imageViewer = new SimpleLightbox('.gallery-link', {
-            captionDelay: 250,
-            captionsData: 'alt', 
-        }); 
-      })
-    .catch(error => {
-            iziToast.error({
-                title: '',
-                message: error.message,
-                position: 'topRight'
-            });
+  fetchImages(searchValue)
+    .then(data => {
+      if (data.hits.length === 0) {
+        iziToast.error({
+          title: '',
+          message: 'Sorry, there are no images matching your search query. Please try again!',
+          position: 'topRight'
+        });
+      }
+      galleryList.innerHTML = createMarkup(data.hits);
+      imageViewer = new SimpleLightbox('.gallery-link', {
+        captionDelay: 250,
+        captionsData: 'alt',
+      });
+      imageViewer.refresh();
     })
-      .finally(() => {
-        searchForm.reset();
-        loader.classList.remove('loader');
-        imageViewer.refresh();
-      })
+    .catch(error => {
+      iziToast.error({
+        title: '',
+        message: error.message,
+        position: 'topRight'
+      });
+    })
+    .finally(() => {
+      searchForm.reset();
+      loader.style.display = 'none';
+    });
 };
 
 function fetchImages(query) {
@@ -68,7 +77,7 @@ function fetchImages(query) {
 function createMarkup(arr) {
   return arr.map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => `
   <li class="gallery-item">
-  <a href="${largeImageURL}" class="${"gallery-link"}">
+  <a href="${largeImageURL}" class="gallery-link">
       <img src="${webformatURL}" 
            alt="${tags}" 
            class="gallery-image"
